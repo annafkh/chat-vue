@@ -21,6 +21,7 @@ describe('the chat store', () => {
     const chat = store.chats.find(item => item.unread > 0)!
     const previousTotal = store.unreadCount
     const previousUnread = chat.unread
+    expect(chat.messages.find(message => message.mine)).toMatchObject({ readByRecipient: true })
     store.markRead(chat.id)
     expect(chat.unread).toBe(0)
     expect(store.unreadCount).toBe(previousTotal - previousUnread)
@@ -34,7 +35,13 @@ describe('the chat store', () => {
     expect(store.sendMessage(chat.id, '   ', time)).toBe(false)
     expect(store.sendMessage(chat.id, '  Hello!\nSee you soon.  ', time)).toBe(true)
     expect(store.sortedChats[0].id).toBe(chat.id)
-    expect(latestMessage(chat)).toMatchObject({ text: 'Hello!\nSee you soon.', time, mine: true })
+    store.markRead(chat.id)
+    expect(latestMessage(chat)).toMatchObject({
+      text: 'Hello!\nSee you soon.',
+      time,
+      mine: true,
+      readByRecipient: false,
+    })
   })
 
   it('starts fresh after signing out and rejects messages without a session', () => {

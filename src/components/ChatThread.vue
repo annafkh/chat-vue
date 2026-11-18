@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { ArrowLeft, Check, Info, Send, Smile, X } from '@lucide/vue'
+import { ArrowLeft, Check, CheckCheck, Info, Send, Smile, X } from '@lucide/vue'
 import PersonAvatar from './PersonAvatar.vue'
 import type { Chat } from '../chats'
 import { clockTime, dayLabel, sameDay } from '../format'
@@ -83,7 +83,8 @@ async function insertEmoji(emoji: string) {
               <p class="message-bubble">{{ message.text }}</p>
               <div class="message-time">
                 <time :datetime="new Date(message.time).toISOString()">{{ clockTime(message.time) }}</time>
-                <Check v-if="message.mine" :size="13" aria-label="Terkirim" />
+                <CheckCheck v-if="message.mine && message.readByRecipient" :size="15" role="img" aria-label="Sudah dibaca" />
+                <Check v-else-if="message.mine" :size="15" role="img" aria-label="Belum dibaca" />
               </div>
             </div>
           </div>

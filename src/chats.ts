@@ -1,9 +1,8 @@
-export interface Message {
+export type Message = {
   id: string
   text: string
   time: number
-  mine: boolean
-}
+} & ({ mine: true; readByRecipient: boolean } | { mine: false })
 
 export interface Chat {
   id: string
@@ -48,12 +47,16 @@ export function seedChats(now = Date.now()): Chat[] {
 
     return {
       id, name, avatar: avatarPath(avatar), online, unread,
-      messages: [...history, text].map((line, position) => ({
-        id: `${id}-${position}`,
-        text: line,
-        time: lastTime - (history.length - position) * 120_000,
-        mine: position < baseHistory.length && position % 2 === 1,
-      })),
+      messages: [...history, text].map((line, position): Message => {
+        const message = {
+          id: `${id}-${position}`,
+          text: line,
+          time: lastTime - (history.length - position) * 120_000,
+        }
+        return position < baseHistory.length && position % 2 === 1
+          ? { ...message, mine: true, readByRecipient: true }
+          : { ...message, mine: false }
+      }),
     }
   })
 }

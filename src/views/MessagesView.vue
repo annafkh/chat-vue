@@ -12,15 +12,28 @@ const store = useChatStore()
 const route = useRoute()
 const router = useRouter()
 const now = ref(Date.now())
+const narrowLayout = window.matchMedia('(max-width: 650px)')
+const isNarrowLayout = ref(narrowLayout.matches)
 const defaultId = store.sortedChats[0]?.id
 const routeId = computed(() => typeof route.params.id === 'string' ? route.params.id : undefined)
-const activeChat = computed(() => store.chats.find(chat => chat.id === (routeId.value || defaultId)))
+const activeChat = computed(() => {
+  const id = routeId.value || (isNarrowLayout.value ? undefined : defaultId)
+  return store.chats.find(chat => chat.id === id)
+})
 let clock: ReturnType<typeof setInterval>
 
+function updateLayout(event: MediaQueryListEvent) {
+  isNarrowLayout.value = event.matches
+}
+
 onMounted(() => {
+  narrowLayout.addEventListener('change', updateLayout)
   clock = setInterval(() => { now.value = Date.now() }, 1_000)
 })
-onUnmounted(() => clearInterval(clock))
+onUnmounted(() => {
+  narrowLayout.removeEventListener('change', updateLayout)
+  clearInterval(clock)
+})
 
 watch(routeId, id => {
   if (id) store.markRead(id)

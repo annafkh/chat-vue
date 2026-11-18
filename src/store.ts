@@ -32,7 +32,13 @@ export const useChatStore = defineStore('sidechat', () => {
     const message = text.trim()
     if (!user.value || !chat || !message) return false
 
-    chat.messages.push({ id: `sent-${++messageSequence}`, text: message, time, mine: true })
+    chat.messages.push({
+      id: `sent-${++messageSequence}`,
+      text: message,
+      time,
+      mine: true,
+      readByRecipient: false,
+    })
     markRead(id)
     return true
   }
