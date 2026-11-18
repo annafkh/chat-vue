@@ -42,6 +42,15 @@ button:disabled { cursor: not-allowed; }
   background: #dae8dc;
 }
 .avatar img { @apply block h-full w-full rounded-full object-cover; }
+.group-avatar {
+  @apply inline-grid overflow-hidden;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 1px;
+  background: #dcebe1;
+}
+.group-avatar img { border-radius: 0; }
 .presence-dot {
   @apply absolute bottom-0 right-0 rounded-full;
   width: 12px;
@@ -171,19 +180,6 @@ button:disabled { cursor: not-allowed; }
 .art-message strong { @apply block; font: 800 13px/1.2 var(--display); margin-bottom: 4px; }
 .art-message-first { top: 33%; left: 17%; border-radius: 19px 19px 19px 5px; transform: rotate(-7deg); background: #f7faf0; color: var(--ink); }
 .art-message-second { top: 55%; right: 14%; border-radius: 19px 19px 5px 19px; transform: rotate(7deg); background: #d2f0aa; color: #18382b; font-weight: 650; }
-.art-reaction {
-  @apply absolute grid place-items-center;
-  top: 72%;
-  left: 35%;
-  width: 47px;
-  height: 45px;
-  transform: rotate(-12deg);
-  border-radius: 14px;
-  border: 1px solid #e2ffd85e;
-  background: #386351;
-  box-shadow: 0 10px 20px #091f1960;
-  font-size: 22px;
-}
 .art-caption {
   position: relative;
   padding: 38px clamp(27px, 5.15vw, 82px) clamp(35px, 6.4vh, 75px);
@@ -279,6 +275,12 @@ button:disabled { cursor: not-allowed; }
   border-color: var(--line);
 }
 .thread-details p { @apply text-xs; color: var(--muted); }
+.group-members {
+  @apply grid w-full gap-2 border-t pt-2 text-xs;
+  border-color: var(--line);
+}
+.group-members li { @apply flex items-center gap-2; }
+.group-members .avatar { --avatar-size: 23px; }
 .details-close { @apply absolute right-1 top-1; width: 30px; height: 30px; }
 .message-scroll {
   background-image: radial-gradient(#6483702c 0.7px, transparent 0.8px);
@@ -309,6 +311,8 @@ button:disabled { cursor: not-allowed; }
   overflow-wrap: anywhere;
 }
 .mine .message-bubble { border-color: #d3e7d5; border-radius: 15px 5px 15px 15px; background: #e0efde; }
+.message-text + .message-text { margin-top: 6px; }
+.message-author { margin-bottom: 4px; color: var(--green); font-size: 11px; font-weight: 700; }
 .message-time { @apply mt-1 flex items-center gap-1; padding-inline: 2px; color: var(--muted); font-size: 10px; }
 .mine .message-time { @apply justify-end; }
 .mine .message-time svg { color: var(--green); }
@@ -364,6 +368,7 @@ button:disabled { cursor: not-allowed; }
   .thread-back { display: inline-grid; margin-left: -6px; }
   .thread-header { min-height: 65px; padding-block: 10px; gap: 8px; }
   .thread-header .avatar { --avatar-size: 39px; }
+  .thread-header .group-members .avatar { --avatar-size: 23px; }
   .thread-composer { padding-bottom: max(9px, env(safe-area-inset-bottom)); }
   .composer-hint { display: none; }
   .input-field input, .search-field input, .composer-box textarea { font-size: 16px; }

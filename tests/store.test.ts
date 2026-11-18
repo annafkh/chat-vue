@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { latestMessage } from '../src/chats'
+import { groupMessages, latestMessage, messageSender } from '../src/chats'
+import type { Message } from '../src/chats'
 import { useChatStore } from '../src/store'
 
 describe('the chat store', () => {
@@ -13,7 +14,8 @@ describe('the chat store', () => {
     expect(store.user).toBeNull()
     expect(store.signIn('chris_evans@example.com', 'password')).toBe(true)
     expect(store.user?.name).toBe('Chris Evans')
-    expect(store.chats).toHaveLength(5)
+    expect(store.chats.filter(chat => chat.kind === 'direct')).toHaveLength(5)
+    expect(store.chats.filter(chat => chat.kind === 'group').map(chat => chat.name)).toEqual(['Teman Sekitar'])
   })
 
   it('marks only the selected conversation as read', () => {
@@ -53,5 +55,34 @@ describe('the chat store', () => {
     expect(store.sendMessage(id, 'Signed out')).toBe(false)
     store.signIn('chris_evans@example.com', 'password')
     expect(store.chats[0].messages.some(message => message.text === 'Session-only message')).toBe(false)
+  })
+
+  it('adds outgoing group messages and retains the author of incoming messages', () => {
+    const store = useChatStore()
+    store.signIn('chris_evans@example.com', 'password')
+    const group = store.chats.find(chat => chat.kind === 'group')!
+    expect(messageSender(group, latestMessage(group))?.name).toBe('Sofia Martinez')
+    expect(store.sendMessage(group.id, 'Aku ikut!')).toBe(true)
+    expect(store.sortedChats[0].id).toBe(group.id)
+    expect(latestMessage(group)).toMatchObject({ text: 'Aku ikut!', mine: true, readByRecipient: false })
+  })
+})
+
+describe('grouped messages', () => {
+  it('combines consecutive messages from the same sender in the same minute', () => {
+    const messages: Message[] = [
+      { id: 'a', text: 'Pertama', time: 60_001, mine: false, senderId: 'maya' },
+      { id: 'b', text: 'Kedua', time: 115_000, mine: false, senderId: 'maya' },
+      { id: 'c', text: 'Ketiga', time: 116_000, mine: false, senderId: 'oliver' },
+      { id: 'd', text: 'Keempat', time: 117_000, mine: false, senderId: 'maya' },
+      { id: 'e', text: 'Kelima', time: 119_999, mine: true, readByRecipient: true },
+      { id: 'f', text: 'Keenam', time: 120_000, mine: true, readByRecipient: false },
+      { id: 'g', text: 'Ketujuh', time: 128_000, mine: true, readByRecipient: false },
+    ]
+    const groups = groupMessages(messages)
+    expect(groups.map(group => group.messages.map(message => message.id))).toEqual([
+      ['a', 'b'], ['c'], ['d'], ['e'], ['f', 'g'],
+    ])
+    expect(groups.map(group => group.latest.id)).toEqual(['b', 'c', 'd', 'e', 'g'])
   })
 })

@@ -1,6 +1,6 @@
 # Sidechat
 
-Sidechat adalah aplikasi demo percakapan pribadi berbahasa Indonesia dengan lima kontak. Gunakan email dan kata sandi apa saja yang terisi, misalnya `chris_evans@example.com` dan `halo`. Memuat ulang halaman akan mengatur ulang sesi demo.
+Sidechat adalah aplikasi demo berbahasa Indonesia dengan lima kontak pribadi dan satu grup, Teman Sekitar. Gunakan email dan kata sandi apa saja yang terisi, misalnya `chris_evans@example.com` dan `halo`. Memuat ulang halaman akan mengatur ulang sesi demo.
 
 ## Menjalankan secara lokal
 
@@ -23,7 +23,7 @@ Impor isi proyek ke StackBlitz, lalu jalankan `npm install` dan `npm run dev` di
 
 Contoh desain aplikasi: https://gradin.co.id/test/vue/mockup
 
-Panduan di bawah ini merupakan brief awal, sebelum perubahan bahasa dan jumlah kontak.
+Panduan di bawah ini merupakan brief awal, sebelum perubahan bahasa, jumlah kontak, dan penambahan grup.
 
 1. General
    - Menggunakan Vue 3 + TypeScript + TailwindCSS

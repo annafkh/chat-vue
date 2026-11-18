@@ -27,24 +27,24 @@ function signIn() {
       <div class="login-content">
         <div class="login-intro">
           <div class="login-greeting"><Sparkles :size="15" aria-hidden="true" /> MODE DEMO</div>
-          <h1 id="login-title">Selamat datang<span>.</span></h1>
-          <p>Masuk untuk melanjutkan percakapanmu.</p>
+          <h1 id="login-title">Hai, balik lagi<span>!</span></h1>
+          <p>Masuk dulu, terus lanjut ngobrol.</p>
         </div>
 
         <form class="login-form" novalidate @submit.prevent="signIn">
           <div>
-            <label for="email">Alamat email</label>
+            <label for="email">Email</label>
             <div class="input-field">
               <Mail :size="19" aria-hidden="true" />
               <input id="email" v-model="email" type="email" autocomplete="email" placeholder="nama@example.com" required />
             </div>
           </div>
           <div>
-            <label for="password">Kata sandi</label>
+            <label for="password">Password</label>
             <div class="input-field">
               <LockKeyhole :size="18" aria-hidden="true" />
-              <input id="password" v-model="password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" placeholder="Masukkan kata sandi" required />
-              <button class="password-toggle" type="button" :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'" @click="showPassword = !showPassword">
+              <input id="password" v-model="password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" placeholder="Isi password" required />
+              <button class="password-toggle" type="button" :aria-label="showPassword ? 'Sembunyikan password' : 'Lihat password'" @click="showPassword = !showPassword">
                 <EyeOff v-if="showPassword" :size="19" />
                 <Eye v-else :size="19" />
               </button>
@@ -52,9 +52,9 @@ function signIn() {
           </div>
           <button class="sign-in" type="submit" :disabled="!canSignIn">Masuk <ArrowRight :size="19" aria-hidden="true" /></button>
         </form>
-        <p class="login-note">Coba dengan email dan kata sandi apa saja.</p>
+        <p class="login-note">Buat coba-coba, isi email dan password apa aja.</p>
       </div>
-      <footer class="login-footer"><span class="footer-dot" /> Pesan kembali ke awal saat halaman dimuat ulang.</footer>
+      <footer class="login-footer"><span class="footer-dot" /> Chat balik ke awal kalau halaman di-refresh.</footer>
     </section>
 
     <aside class="login-art" aria-label="Tentang Sidechat">
@@ -68,17 +68,16 @@ function signIn() {
         <span class="orbit-point orbit-point-two" />
         <div class="art-message art-message-first">
           <PersonAvatar :src="avatarPath('women-44')" name="Maya Chen" />
-          <div><strong>Maya Chen</strong><p>Ngopi akhir pekan ini? ☕</p></div>
+          <div><strong>Maya Chen</strong><p>Sabtu ngopi, yuk. ☕</p></div>
         </div>
         <div class="art-message art-message-second">
-          <p>Ngopi? Selalu mau! 💚</p>
+          <p>Gas! Jam berapa?</p>
           <PersonAvatar :src="avatarPath('men-32')" name="Oliver Brooks" />
         </div>
-        <div class="art-reaction">✨</div>
       </div>
       <div class="art-caption">
-        <p>Semua berawal<br />dari satu <em>sapaan.</em></p>
-        <span>Tempat mengobrol dengan orang-orang terdekatmu.</span>
+        <p>Obrolan seru<br />mulai dari <em>hai.</em></p>
+        <span>Buat ngobrol sama teman, kapan aja.</span>
       </div>
     </aside>
   </main>

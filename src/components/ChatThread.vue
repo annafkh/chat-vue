@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { ArrowLeft, Check, CheckCheck, Info, Send, Smile, X } from '@lucide/vue'
+import ConversationAvatar from './ConversationAvatar.vue'
 import PersonAvatar from './PersonAvatar.vue'
 import type { Chat } from '../chats'
+import { groupMessages, messageSender } from '../chats'
 import { clockTime, dayLabel, sameDay } from '../format'
 
 const props = defineProps<{ chat: Chat; now: number }>()
@@ -15,6 +17,11 @@ const showDetails = ref(false)
 const showEmoji = ref(false)
 const emojis = ['😊', '😂', '💚', '✨', '👍', '👋', '☕', '🎉']
 const canSend = computed(() => Boolean(draft.value.trim()))
+const messageGroups = computed(() => groupMessages(props.chat.messages).map(group => ({
+  ...group,
+  sender: messageSender(props.chat, group.latest),
+  allRead: group.messages.every(message => message.mine && message.readByRecipient),
+})))
 
 function scrollToLatest() {
   if (messages.value) messages.value.scrollTop = messages.value.scrollHeight
@@ -24,7 +31,8 @@ onMounted(scrollToLatest)
 watch(() => props.chat.messages.length, scrollToLatest, { flush: 'post' })
 
 function startsDay(index: number) {
-  return index === 0 || !sameDay(new Date(props.chat.messages[index - 1].time), new Date(props.chat.messages[index].time))
+  const groups = messageGroups.value
+  return index === 0 || !sameDay(new Date(groups[index - 1].latest.time), new Date(groups[index].latest.time))
 }
 
 function send() {
@@ -58,33 +66,47 @@ async function insertEmoji(emoji: string) {
   <section class="thread" aria-labelledby="thread-title">
     <header class="thread-header">
       <button class="icon-button thread-back" type="button" aria-label="Kembali ke daftar pesan" @click="emit('back')"><ArrowLeft :size="21" /></button>
-      <PersonAvatar :src="chat.avatar" :name="chat.name" :online="chat.online" />
+      <ConversationAvatar :chat="chat" />
       <div class="min-w-0 flex-1">
         <h2 id="thread-title" class="truncate">{{ chat.name }}</h2>
-        <p class="thread-status" :class="{ online: chat.online }"><span />{{ chat.online ? 'Aktif' : 'Tidak aktif' }}</p>
+        <p v-if="chat.kind === 'group'" class="thread-status">Grup · {{ chat.members.length + 1 }} anggota</p>
+        <p v-else class="thread-status" :class="{ online: chat.online }"><span />{{ chat.online ? 'Online' : 'Offline' }}</p>
       </div>
-      <button class="icon-button details-button" type="button" aria-label="Detail percakapan" :aria-expanded="showDetails" @click="showDetails = !showDetails"><Info :size="21" /></button>
+      <button class="icon-button details-button" type="button" aria-label="Info chat" :aria-expanded="showDetails" @click="showDetails = !showDetails"><Info :size="21" /></button>
       <div v-if="showDetails" class="thread-details">
-        <button class="icon-button details-close" type="button" aria-label="Tutup detail percakapan" @click="showDetails = false"><X :size="17" /></button>
-        <PersonAvatar :src="chat.avatar" :name="chat.name" :online="chat.online" />
+        <button class="icon-button details-close" type="button" aria-label="Tutup info chat" @click="showDetails = false"><X :size="17" /></button>
+        <ConversationAvatar :chat="chat" />
         <strong>{{ chat.name }}</strong>
-        <p>{{ chat.online ? 'Aktif' : 'Tidak aktif' }}</p>
+        <template v-if="chat.kind === 'group'">
+          <p>{{ chat.members.length + 1 }} anggota</p>
+          <ul class="group-members" aria-label="Anggota grup">
+            <li v-for="member in chat.members" :key="member.id">
+              <PersonAvatar :src="member.avatar" :name="member.name" />
+              <span>{{ member.name }}</span>
+            </li>
+            <li>Kamu</li>
+          </ul>
+        </template>
+        <p v-else>{{ chat.online ? 'Online' : 'Offline' }}</p>
         <p>{{ chat.messages.length }} pesan</p>
       </div>
     </header>
 
-    <div ref="messages" class="message-scroll" role="log" :aria-label="`Percakapan dengan ${chat.name}`">
+    <div ref="messages" class="message-scroll" role="log" :aria-label="`Chat sama ${chat.name}`">
       <div class="message-stack">
-        <template v-for="(message, index) in chat.messages" :key="message.id">
-          <div v-if="startsDay(index)" class="day-divider"><span>{{ dayLabel(message.time, now) }}</span></div>
-          <div class="message-row" :class="{ mine: message.mine }">
-            <PersonAvatar v-if="!message.mine" :src="chat.avatar" :name="chat.name" />
+        <template v-for="(group, index) in messageGroups" :key="group.messages[0].id">
+          <div v-if="startsDay(index)" class="day-divider"><span>{{ dayLabel(group.latest.time, now) }}</span></div>
+          <div class="message-row" :class="{ mine: group.latest.mine }">
+            <PersonAvatar v-if="group.sender" :src="group.sender.avatar" :name="group.sender.name" />
             <div class="message-content">
-              <p class="message-bubble">{{ message.text }}</p>
+              <div class="message-bubble">
+                <p v-if="chat.kind === 'group' && group.sender" class="message-author">{{ group.sender.name }}</p>
+                <p v-for="message in group.messages" :key="message.id" class="message-text">{{ message.text }}</p>
+              </div>
               <div class="message-time">
-                <time :datetime="new Date(message.time).toISOString()">{{ clockTime(message.time) }}</time>
-                <CheckCheck v-if="message.mine && message.readByRecipient" :size="15" role="img" aria-label="Sudah dibaca" />
-                <Check v-else-if="message.mine" :size="15" role="img" aria-label="Belum dibaca" />
+                <time :datetime="new Date(group.latest.time).toISOString()">{{ clockTime(group.latest.time) }}</time>
+                <CheckCheck v-if="group.allRead" :size="15" role="img" aria-label="Sudah dibaca" />
+                <Check v-else-if="group.latest.mine" :size="15" role="img" aria-label="Belum dibaca" />
               </div>
             </div>
           </div>
@@ -101,7 +123,7 @@ async function insertEmoji(emoji: string) {
         <textarea ref="composer" v-model="draft" rows="1" aria-label="Pesan" placeholder="Tulis pesan…" @keydown.enter="handleEnter" />
         <button class="send-button" type="submit" aria-label="Kirim pesan" :disabled="!canSend"><Send :size="18" aria-hidden="true" /></button>
       </div>
-      <p class="composer-hint">Enter untuk mengirim · Shift + Enter untuk baris baru</p>
+      <p class="composer-hint">Enter buat kirim · Shift + Enter buat baris baru</p>
     </form>
   </section>
 </template>
